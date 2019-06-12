@@ -14,5 +14,5 @@ module blinky(i_clk, o_led);
         counter <= counter + 1'b1;
     end
 
-    assign o_led = counter[WIDTH-1];
+    assign o_led = (counter[9:0] < counter[WIDTH-1:WIDTH-10]);
 endmodule
