@@ -11,8 +11,12 @@ int main(int argc, char **argv) {
     baudclocks = tb->m_core->o_setup;
     uart->setup(baudclocks);
 
+    tb->opentrace("helloworld.vcd");
+
     for (int clocks=0; clocks<16*32*baudclocks; clocks++) {
         tb->tick();
         (*uart)(tb->m_core->o_uart_tx);
     }
+
+    printf("\nSimulation Complete!\n");
 }

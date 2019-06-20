@@ -63,7 +63,7 @@ public:
 
     virtual ~TESTB(void) {
         closetrace();
-        delete m_core();
+        delete m_core;
         m_core = NULL;
     }
 };
