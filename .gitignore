@@ -3,3 +3,4 @@ obj_dir/
 ipch/
 *_tb
 .DS_Store
+*.dSYM
