@@ -68,4 +68,85 @@ module txuart(
             baud_stb <= 1'b0;
         end
     end
+
+`ifdef	FORMAL
+
+`ifdef	TXUART
+`define	ASSUME	assume
+`else
+`define	ASSUME	assert
+`endif
+
+	// Setup
+
+	reg	f_past_valid;
+
+	initial	f_past_valid = 1'b0;
+	always @(posedge i_clk)
+		f_past_valid <= 1'b1;
+
+	// Any outstanding request that was busy on the last cycle,
+	// should remain busy on this cycle
+	initial	`ASSUME(!i_wr);
+	always @(posedge i_clk)
+		if ((f_past_valid)&&($past(i_wr))&&($past(o_busy)))
+		begin
+			`ASSUME(i_wr   == $past(i_wr));
+			`ASSUME(i_data == $past(i_data));
+		end
+
+	//////////////////////////////////
+	//
+	// The contract
+	//
+	//////////////////////////////////
+
+	reg	[7:0]	fv_data;
+	always @(posedge i_clk)
+	if ((i_wr)&&(!o_busy))
+		fv_data <= i_data;
+
+	always @(posedge i_clk)
+	case(state)
+	IDLE:		assert(o_uart_tx == 1'b1);
+	START:		assert(o_uart_tx == 1'b0);
+	BIT_ZERO:	assert(o_uart_tx == fv_data[0]);
+	BIT_ONE:	assert(o_uart_tx == fv_data[1]);
+	BIT_TWO:	assert(o_uart_tx == fv_data[2]);
+	BIT_THREE:	assert(o_uart_tx == fv_data[3]);
+	BIT_FOUR:	assert(o_uart_tx == fv_data[4]);
+	BIT_FIVE:	assert(o_uart_tx == fv_data[5]);
+	BIT_SIX:	assert(o_uart_tx == fv_data[6]);
+	BIT_SEVEN:	assert(o_uart_tx == fv_data[7]);
+	default: assert(0);
+	endcase
+
+	//////////////////////////////////
+	//
+	// Internal state checks
+	//
+	//////////////////////////////////
+
+
+	//
+	// Check the baud counter
+	//
+
+	// The baud_stb needs to be identical to our counter being zero
+	always @(posedge i_clk)
+		assert(baud_stb == (counter == 0));
+
+
+	always @(posedge i_clk)
+	if ((f_past_valid)&&($past(counter != 0)))
+		assert(counter == $past(counter - 1'b1));
+
+	always @(posedge i_clk)
+		assert(counter < CLOCKS_PER_BAUD);
+
+	always @(posedge i_clk)
+	if (!baud_stb)
+		assert(o_busy);
+
+`endif	// FORMAL
 endmodule
