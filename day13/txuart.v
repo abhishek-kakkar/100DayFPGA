@@ -118,7 +118,12 @@ module txuart(
 	BIT_FIVE:	assert(o_uart_tx == fv_data[5]);
 	BIT_SIX:	assert(o_uart_tx == fv_data[6]);
 	BIT_SEVEN:	assert(o_uart_tx == fv_data[7]);
-	//default: assert(0);
+	9 : assert(0);
+    10 : assert(0);
+    11 : assert(0);
+    12 : assert(0);
+    13 : assert(0);
+    14 : assert(0);
 	endcase
 
 	//////////////////////////////////
@@ -126,7 +131,25 @@ module txuart(
 	// Internal state checks
 	//
 	//////////////////////////////////
-
+    always @(*)
+    case(state)
+    IDLE:		assert(lcl_data == 9'h1FF);
+	START:		assert(lcl_data == {fv_data[7:0], 1'b0});
+	BIT_ZERO:	assert(lcl_data == {1'b1, fv_data[7:0]});
+	BIT_ONE:	assert(lcl_data == {2'b11, fv_data[7:1]});
+	BIT_TWO:	assert(lcl_data == {3'b111, fv_data[7:2]});
+	BIT_THREE:	assert(lcl_data == {4'b1111, fv_data[7:3]});
+	BIT_FOUR:	assert(lcl_data == {5'b11111, fv_data[7:4]});
+	BIT_FIVE:	assert(lcl_data == {6'b111111, fv_data[7:5]});
+	BIT_SIX:	assert(lcl_data == {7'b1111111, fv_data[7:6]});
+	BIT_SEVEN:	assert(lcl_data == {8'b11111111, fv_data[7:7]});
+    9 : assert(0);
+    10 : assert(0);
+    11 : assert(0);
+    12 : assert(0);
+    13 : assert(0);
+    14 : assert(0);
+    endcase
 
 	//
 	// Check the baud counter
