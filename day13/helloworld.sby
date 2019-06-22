@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 90
+expect pass
+
+[engines]
+smtbmc yices
+
+[script]
+read_verilog -formal helloworld.v
+read_verilog -formal txuart.v
+prep -top helloworld
+
+[files]
+txuart.v
+helloworld.v
