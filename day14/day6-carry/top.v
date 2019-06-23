@@ -1,6 +1,7 @@
 module top(
     input wire CLK,
 
+    output wire LED,
     output wire PIN_1,
     output wire PIN_2,
     output wire PIN_3,
@@ -19,5 +20,5 @@ module top(
         .sw(!PIN_9)
     );
 
-    assign {PIN_7, PIN_8} = 2'b0;
+    assign {LED, PIN_7, PIN_8} = 3'b0;
 endmodule
