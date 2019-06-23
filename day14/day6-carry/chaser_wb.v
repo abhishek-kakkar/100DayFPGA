@@ -40,7 +40,9 @@ module chaser_wb(
     // Clock divider
     always @(posedge i_clk)
     begin
-        if (cntr >= 2**WIDTH - 1) begin
+        if ((i_stb) && (i_we) && (!o_stall))
+            cntr <= 0;
+        else if (cntr >= 2**WIDTH - 1) begin
             cntr <= 0;
             adv <= 1;
         end else begin
