@@ -4,7 +4,7 @@ module driver(
     input wire sw
 );
     chaser_wb #(
-        .WIDTH(24)
+        .WIDTH(22)
     ) mychaser (
         .i_clk(i_clk),
         .o_led(led),
