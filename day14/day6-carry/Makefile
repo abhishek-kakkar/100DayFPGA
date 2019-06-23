@@ -20,6 +20,19 @@ obj_dir/Vchaser_wb.cpp: chaser_wb.v
 obj_dir/Vchaser_wb__ALL.a: obj_dir/Vchaser_wb.cpp
 	make -C obj_dir -f Vchaser_wb.mk
 
+yosys: chaser_wb.json
+chaser_wb.json: top.v driver.v chaser_wb.v
+	yosys -p 'synth_ice40 -top $(TOP) -json $@' $^
+
+%.asc: %.json tinyfpga_bx.pcf
+	nextpnr-ice40 --$(DEVICE) --package cm81 --freq 16 --pcf tinyfpga_bx.pcf --json $< --asc $@
+
+%.bin: %.asc
+	icepack $< $@
+
+%.rpt: %.asc
+	icetime -d $(DEVICE) -mtr $@ $<
+
 .PHONY: clean
 clean:
 	rm -rf obj_dir/ chaser_wb
