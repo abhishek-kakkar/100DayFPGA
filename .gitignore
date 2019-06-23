@@ -4,3 +4,6 @@ ipch/
 *_tb
 .DS_Store
 *.dSYM
+*.rpt
+*.asc
+*.json
