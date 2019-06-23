@@ -16,9 +16,9 @@ module top(
 
     driver mydriver(
         .i_clk(CLK),
-        .led({PIN_6, PIN_5, PIN_4, PIN_3, PIN_2, PIN_1}),
+        .led({PIN_8, PIN_7, PIN_6, PIN_5, PIN_4, PIN_3, PIN_2, PIN_1}),
         .sw(!PIN_9)
     );
 
-    assign {LED, PIN_7, PIN_8} = 3'b0;
+    assign {LED} = 1'b0;
 endmodule

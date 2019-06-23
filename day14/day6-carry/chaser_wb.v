@@ -10,12 +10,12 @@ module chaser_wb(
     output reg          o_ack,
     output wire [31:0]  o_data,
 
-    output reg  [5:0]   o_led
+    output reg  [7:0]   o_led
 );
     parameter WIDTH = 24;
 
     wire            busy;
-    reg     [3:0]   state;
+    reg     [4:0]   state;
 
     // For clock divider
     reg     [WIDTH-1:0] cntr;
@@ -33,7 +33,7 @@ module chaser_wb(
         o_ack <= (i_stb) && (!o_stall);
     
     assign o_stall = (busy) && (i_we);
-    assign o_data = { 28'h0, state };
+    assign o_data = { 27'h0, state };
 
     assign busy = (state != 0);
 
@@ -54,27 +54,31 @@ module chaser_wb(
     always @(posedge i_clk)
     begin
         if ((i_stb) && (i_we) && (!o_stall))
-            state <= 4'h1;
+            state <= 5'h1;
         else if (adv == 1'h1) begin
-            if (state >= 4'hB)
-                state <= 4'h0;
+            if (state >= 5'hF)
+                state <= 5'h0;
             else if (state != 0)
                 state <= state + 1'h1;
         end
 
         case (state)
-            4'h1: o_led <= 6'h01;
-            4'h2: o_led <= 6'h02;
-            4'h3: o_led <= 6'h04;
-            4'h4: o_led <= 6'h08;
-            4'h5: o_led <= 6'h10;
-            4'h6: o_led <= 6'h20;
-            4'h7: o_led <= 6'h10;
-            4'h8: o_led <= 6'h08;
-            4'h9: o_led <= 6'h04;
-            4'hA: o_led <= 6'h02;
-            4'hB: o_led <= 6'h01;
-            default: o_led <= 6'h00;
+            5'h1: o_led <= 8'h01;
+            5'h2: o_led <= 8'h02;
+            5'h3: o_led <= 8'h04;
+            5'h4: o_led <= 8'h08;
+            5'h5: o_led <= 8'h10;
+            5'h6: o_led <= 8'h20;
+            5'h7: o_led <= 8'h40;
+            5'h8: o_led <= 8'h80;
+            5'h9: o_led <= 8'h40;
+            5'hA: o_led <= 8'h20;
+            5'hB: o_led <= 8'h10;
+            5'hC: o_led <= 8'h08;
+            5'hD: o_led <= 8'h04;
+            5'hE: o_led <= 8'h02;
+            5'hF: o_led <= 8'h01;
+            default: o_led <= 8'h00;
         endcase
     end
 endmodule
