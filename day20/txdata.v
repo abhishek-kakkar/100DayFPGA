@@ -1,3 +1,5 @@
+// Recreated from the 6th ZipCPU tutorial
+
 `default_nettype	none
 
 module txdata(
@@ -53,7 +55,7 @@ module txdata(
         end
     end
 
-    assign o_busy = (state != 0);
+    assign o_busy = (tx_stb);
 
     initial sreg = 0;
     always @(posedge i_clk)
@@ -83,7 +85,7 @@ module txdata(
     endcase
 
     always @(posedge i_clk)
-    if (!tx_busy)
+    if ((tx_stb) && !tx_busy)
         case (state)
         4'h1: tx_data <= "0";
         4'h2: tx_data <= "x";
