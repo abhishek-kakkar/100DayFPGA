@@ -1,0 +1,13 @@
+[options]
+mode cover
+depth 100
+
+[engines]
+smtbmc yices
+
+[script]
+read_verilog -formal txdata.v
+prep -top txdata
+
+[files]
+txdata.v
