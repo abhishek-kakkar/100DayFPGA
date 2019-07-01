@@ -1,0 +1,12 @@
+[options]
+mode prove
+
+[engines]
+smtbmc yices
+
+[script]
+read_verilog -formal txdata.v
+prep -top txdata
+
+[files]
+txdata.v
