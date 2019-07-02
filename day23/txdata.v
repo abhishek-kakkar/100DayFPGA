@@ -42,7 +42,7 @@ module txdata(
             state <= 0;
             tx_stb <= 0;
         end else if (!o_busy) begin
-            if (i_stb) begin
+            if (i_stb && !tx_busy) begin
                 state <= 1;
                 tx_stb <= 1;
             end
@@ -55,7 +55,7 @@ module txdata(
         end
     end
 
-    assign o_busy = (tx_stb);
+    assign o_busy = tx_stb;
 
     initial sreg = 0;
     always @(posedge i_clk)
@@ -174,10 +174,15 @@ module txdata(
     initial	p1reg = 0;
     reg [31:0] fv_data;
 
+    always @(*) begin
+        assert(tx_stb != (state == 0));
+        assert(state >= 0 && state <= 4'hD);
+    end
+
     always @(posedge i_clk)
     if (i_reset)
         p1reg <= 0;
-    else if ((i_stb)&&(!o_busy))
+    else if ((i_stb)&&(!o_busy)&&(!tx_busy))
     begin
         p1reg <= 1;
         fv_data <= i_data;
@@ -186,10 +191,9 @@ module txdata(
         if (p1reg != 1)
             assert($stable(fv_data));
         if (!tx_busy)
-            p1reg <= { p1reg[14:0], 1'b0 };
-        if ((!tx_busy))
+            p1reg <= { p1reg[11:0], 1'b0 };
+        if ((!tx_busy)||(f_minbusy==0))
         begin
-            assert(p1reg < 13'b1000000000000);
             if (p1reg[0])
             begin
                 assert((tx_data == "0")&&(state == 1));
@@ -203,6 +207,7 @@ module txdata(
             if (p1reg[2])
             begin
                 assert((tx_data == "x")&&(state == 3));
+                assert((sreg == fv_data));
             end
             if (p1reg[3])
             begin
@@ -274,9 +279,9 @@ module txdata(
             end
             if (p1reg[12])
             begin
-                assert((tx_data == "\n")&&(state == 0));
-                p1reg <= 0;
+                assert((tx_data == "\n")&&(state == 13));
             end
+            assert(p1reg <= 13'b1000000000000);
         end
     end else
         assert(state == 0);
