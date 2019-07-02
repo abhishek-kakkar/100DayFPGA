@@ -42,7 +42,7 @@ module txdata(
             state <= 0;
             tx_stb <= 0;
         end else if (!o_busy) begin
-            if (i_stb && !tx_busy) begin
+            if (i_stb) begin
                 state <= 1;
                 tx_stb <= 1;
             end
@@ -55,7 +55,7 @@ module txdata(
         end
     end
 
-    assign o_busy = tx_stb;
+    assign o_busy = tx_stb | tx_busy;
 
     initial sreg = 0;
     always @(posedge i_clk)
