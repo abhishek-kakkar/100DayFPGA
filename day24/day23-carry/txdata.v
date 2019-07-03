@@ -48,7 +48,7 @@ module txdata(
             end
         end else if ((tx_stb)&&(!tx_busy)) begin
             state <= state + 1;
-            if (state >= 4'hD) begin
+            if (state >= 4'hC) begin
                 tx_stb <= 1'b0;
                 state <= 0;
             end
@@ -61,7 +61,7 @@ module txdata(
     always @(posedge i_clk)
     if (!o_busy)
         sreg <= i_data;
-    else if (!(tx_busy) && (state > 4'h2))
+    else if (!(tx_busy) && (state > 4'h1))
         sreg <= {sreg[27:0], 4'h0};
 
     always @(posedge i_clk)
@@ -87,8 +87,10 @@ module txdata(
     always @(posedge i_clk)
     if (!tx_busy)
         case (state)
-        4'h1: tx_data <= "0";
-        4'h2: tx_data <= "x";
+        // Fix for extra '0' in simulation
+        //4'h1: tx_data <= "0";
+        4'h1: tx_data <= "x";
+        4'h2: tx_data <= hex;
         4'h3: tx_data <= hex;
         4'h4: tx_data <= hex;
         4'h5: tx_data <= hex;
@@ -96,9 +98,8 @@ module txdata(
         4'h7: tx_data <= hex;
         4'h8: tx_data <= hex;
         4'h9: tx_data <= hex;
-        4'hA: tx_data <= hex;
-        4'hB: tx_data <= "\r";
-        4'hC: tx_data <= "\n";
+        4'hA: tx_data <= "\r";
+        4'hB: tx_data <= "\n";
         default: tx_data <= "0";
         endcase
 
@@ -176,7 +177,7 @@ module txdata(
 
     always @(*) begin
         assert(tx_stb != (state == 0));
-        assert(state >= 0 && state <= 4'hD);
+        assert(state >= 0 && state <= 4'hC);
     end
 
     always @(posedge i_clk)
@@ -191,7 +192,7 @@ module txdata(
         if (p1reg != 1)
             assert($stable(fv_data));
         if (!tx_busy)
-            p1reg <= { p1reg[11:0], 1'b0 };
+            p1reg <= { p1reg[10:0], 1'b0 };
         if ((!tx_busy)||(f_minbusy==0))
         begin
             if (p1reg[0])
@@ -201,87 +202,82 @@ module txdata(
             end
             if (p1reg[1])
             begin
-                assert((tx_data == "0")&&(state == 2));
+                assert((tx_data == "x")&&(state == 2));
                 assert((sreg == fv_data));
             end
             if (p1reg[2])
             begin
-                assert((tx_data == "x")&&(state == 3));
-                assert((sreg == fv_data));
+                if (fv_data[31:28] > 9)
+                    assert((tx_data == "A" + fv_data[31:28] - 10)&&(state == 3));
+                else
+                    assert((tx_data == "0" + fv_data[31:28])&&(state == 3));
+                assert((sreg == {fv_data[27:0], 4'h0}));
             end
             if (p1reg[3])
             begin
-                if (fv_data[31:28] > 9)
-                    assert((tx_data == "A" + fv_data[31:28] - 10)&&(state == 4));
+                if (fv_data[27:24] > 9)
+                    assert((tx_data == "A" + fv_data[27:24] - 10)&&(state == 4));
                 else
-                    assert((tx_data == "0" + fv_data[31:28])&&(state == 4));
-                assert((sreg == {fv_data[27:0], 4'h0}));
+                    assert((tx_data == "0" + fv_data[27:24])&&(state == 4));
+                assert((sreg == {fv_data[23:0], 8'h0}));
             end
             if (p1reg[4])
             begin
-                if (fv_data[27:24] > 9)
-                    assert((tx_data == "A" + fv_data[27:24] - 10)&&(state == 5));
+                if (fv_data[23:20] > 9)
+                    assert((tx_data == "A" + fv_data[23:20] - 10)&&(state == 5));
                 else
-                    assert((tx_data == "0" + fv_data[27:24])&&(state == 5));
-                assert((sreg == {fv_data[23:0], 8'h0}));
+                    assert((tx_data == "0" + fv_data[23:20])&&(state == 5));
+                assert((sreg == {fv_data[19:0], 12'h0}));
             end
             if (p1reg[5])
             begin
-                if (fv_data[23:20] > 9)
-                    assert((tx_data == "A" + fv_data[23:20] - 10)&&(state == 6));
+                if (fv_data[19:16] > 9)
+                    assert((tx_data == "A" + fv_data[19:16] - 10)&&(state == 6));
                 else
-                    assert((tx_data == "0" + fv_data[23:20])&&(state == 6));
-                assert((sreg == {fv_data[19:0], 12'h0}));
+                    assert((tx_data == "0" + fv_data[19:16])&&(state == 6));
+                assert((sreg == {fv_data[15:0], 16'h0}));
             end
             if (p1reg[6])
             begin
-                if (fv_data[19:16] > 9)
-                    assert((tx_data == "A" + fv_data[19:16] - 10)&&(state == 7));
+                if (fv_data[15:12] > 9)
+                    assert((tx_data == "A" + fv_data[15:12] - 10)&&(state == 7));
                 else
-                    assert((tx_data == "0" + fv_data[19:16])&&(state == 7));
-                assert((sreg == {fv_data[15:0], 16'h0}));
+                    assert((tx_data == "0" + fv_data[15:12])&&(state == 7));  
+                assert((sreg == {fv_data[11:0], 20'h0}));
             end
             if (p1reg[7])
             begin
-                if (fv_data[15:12] > 9)
-                    assert((tx_data == "A" + fv_data[15:12] - 10)&&(state == 8));
+                if (fv_data[11:8] > 9)
+                    assert((tx_data == "A" + fv_data[11:8] - 10)&&(state == 8));
                 else
-                    assert((tx_data == "0" + fv_data[15:12])&&(state == 8));  
-                assert((sreg == {fv_data[11:0], 20'h0}));
+                    assert((tx_data == "0" + fv_data[11:8])&&(state == 8));
+                assert((sreg == {fv_data[7:0], 24'h0}));
             end
             if (p1reg[8])
             begin
-                if (fv_data[11:8] > 9)
-                    assert((tx_data == "A" + fv_data[11:8] - 10)&&(state == 9));
+                if (fv_data[7:4] > 9)
+                    assert((tx_data == "A" + fv_data[7:4] - 10)&&(state == 9));
                 else
-                    assert((tx_data == "0" + fv_data[11:8])&&(state == 9));
-                assert((sreg == {fv_data[7:0], 24'h0}));
+                    assert((tx_data == "0" + fv_data[7:4])&&(state == 9));  
+                assert((sreg ==  {fv_data[3:0], 28'h0}));
             end
             if (p1reg[9])
             begin
-                if (fv_data[7:4] > 9)
-                    assert((tx_data == "A" + fv_data[7:4] - 10)&&(state == 10));
+                if (fv_data[3:0] > 9)
+                    assert((tx_data == "A" + fv_data[3:0] - 10)&&(state == 10));
                 else
-                    assert((tx_data == "0" + fv_data[7:4])&&(state == 10));  
-                assert((sreg ==  {fv_data[3:0], 28'h0}));
+                    assert((tx_data == "0" + fv_data[3:0])&&(state == 10));
+                assert((sreg == 32'h0));
             end
             if (p1reg[10])
             begin
-                if (fv_data[3:0] > 9)
-                    assert((tx_data == "A" + fv_data[3:0] - 10)&&(state == 11));
-                else
-                    assert((tx_data == "0" + fv_data[3:0])&&(state == 11));
-                assert((sreg == 32'h0));
+                assert((tx_data == "\r")&&(state == 11));
             end
             if (p1reg[11])
             begin
-                assert((tx_data == "\r")&&(state == 12));
+                assert((tx_data == "\n")&&(state == 12));
             end
-            if (p1reg[12])
-            begin
-                assert((tx_data == "\n")&&(state == 13));
-            end
-            assert(p1reg <= 13'b1000000000000);
+            assert(p1reg <= 12'b100000000000);
         end
     end else
         assert(state == 0);
