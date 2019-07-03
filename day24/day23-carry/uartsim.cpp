@@ -6,6 +6,7 @@
 #include <poll.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <ncurses.h>
 #include <signal.h>
 #include <ctype.h>
 
@@ -38,8 +39,10 @@ int UARTSIM::operator()(const int i_tx) {
     } else if (m_rx_baudcounter <= 0) {
         if (m_rx_bits >= 8) {
             m_rx_state = RXIDLE;
-            putchar(m_rx_data);
-            fflush(stdout);
+            // putchar(m_rx_data);
+            // fflush(stdout);
+            if (m_rx_data != '\r')
+                addch(m_rx_data);
         } else {
             m_rx_bits++;
             m_rx_data = ((i_tx & 1) ? 0x80 : 0) | (m_rx_data >> 1);
