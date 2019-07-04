@@ -1,6 +1,6 @@
 module chgdetector(
     input wire i_clk,
-    input reg [31:0] i_data,
+    input wire [31:0] i_data,
     input wire i_busy,
     output reg o_stb,
     output reg [31:0] o_data

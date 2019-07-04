@@ -2,12 +2,24 @@
 
 `default_nettype	none
 
+`ifdef SYNTHESIS
+    `define USB_UART
+`endif
+
 module txdata(
     input wire i_clk,
     input wire i_stb,
     input wire [31:0] i_data,
     input wire i_reset,
 
+`ifdef USB_UART
+    input wire i_clk48,
+
+    inout wire usb_p,
+    inout wire usb_n,
+`endif
+
+    output wire tx_busy,
     output wire o_busy,
     output wire o_uart_tx
 );
@@ -15,13 +27,14 @@ module txdata(
 
     reg tx_stb;
     reg [7:0] tx_data;
-    wire tx_busy;
+    
 
     reg [3:0] state;
     reg [31:0] sreg;
     reg [7:0] hex;
 
 `ifndef FORMAL
+`ifndef USB_UART
     txuart #(UART_SETUP[23:0]) txuart_i(
         .i_clk(i_clk),
         .i_wr(tx_stb),
@@ -30,9 +43,52 @@ module txdata(
         .o_busy(tx_busy)
     );
 `else
+    usb_uart_i40 txuart_i(
+        .clk_48mhz(i_clk48),
+        .reset(i_reset),
+
+        .pin_usb_p(usb_p),
+        .pin_usb_n(usb_n),
+
+        .uart_in_data(u_tx_data),
+        .uart_in_valid(u_tx_stb),
+        .uart_in_ready(u_tx_ready)
+    );
+`endif
+`else
     (* anyseq *) wire serial_busy, serial_out;
     assign	o_uart_tx = serial_out;
     assign	tx_busy = serial_busy;
+`endif
+
+`ifdef USB_UART
+    wire u_tx_ready;
+    reg d_tb, tx_busy_1, u_tx_stb, d_ts, ts;
+    reg [7:0] u_tx_data;
+
+    initial begin
+        ts = 0; d_ts = 0;
+        d_tb = 0; tx_busy_1 = 0;
+        u_tx_stb = 0; u_tx_data = 0;
+    end
+
+    always @(posedge i_clk48)
+    begin
+        {ts, d_ts} = {d_ts, tx_stb};
+        if (ts && u_tx_ready) begin
+            u_tx_data <= tx_data;
+            u_tx_stb <= 1;
+        end else begin
+            u_tx_stb <= 0;
+        end
+    end
+
+    always @(posedge i_clk)
+        {tx_busy_1, d_tb} <= {d_tb, !u_tx_ready};
+
+    assign tx_busy = tx_busy_1;
+    wire PIN_1;
+    assign PIN_1 = tx_busy;
 `endif
 
     initial state = 0;
