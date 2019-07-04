@@ -8,6 +8,7 @@ VLOGFIL := $(TOPMOD).v
 VCDFILE := $(TOPMOD).vcd
 SIMPROG := $(TOPMOD)_tb
 SIMFILE := $(SIMPROG).cpp
+DEVICE = lp8k
 VDIRFB := ./obj_dir
 COSIMS := uartsim.cpp
 all: $(VCDFILE)
@@ -42,6 +43,22 @@ test: $(VCDFILE)
 
 $(VCDFILE): $(SIMPROG)
 	./$(SIMPROG)
+
+yosys: thedesign.json
+thedesign.json: top.v thedesign.v chgdetector.v counter.v txdata.v usb/*.v pll.v
+	yosys -p 'synth_ice40 -top top -json $@' $^
+
+pll.v:
+	icepll -i 16 -o 48 -m -f $@
+
+%.asc: %.json tinyfpga_bx.pcf
+	nextpnr-ice40 --$(DEVICE) --package cm81 --freq 16 --pcf tinyfpga_bx.pcf --json $< --asc $@
+
+%.bin: %.asc
+	icepack $< $@
+
+%.rpt: %.asc
+	icetime -d $(DEVICE) -mtr $@ $@
 
 .PHONY: clean
 clean:
