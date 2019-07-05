@@ -45,7 +45,7 @@ $(VCDFILE): $(SIMPROG)
 	./$(SIMPROG)
 
 yosys: thedesign.json
-thedesign.json: top.v thedesign.v chgdetector.v counter.v txdata.v usb/*.v pll.v
+thedesign.json: thedesign.v chgdetector.v counter.v txdata.v usb/*.v pll.v top.v
 	yosys -p 'synth_ice40 -top top -json $@' $^
 
 pll.v:

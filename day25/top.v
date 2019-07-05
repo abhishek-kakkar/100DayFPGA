@@ -1,8 +1,16 @@
+`default_nettype none
+
 module top(
     input wire CLK,
 
     output wire PIN_1,
     output wire PIN_2,
+    output wire PIN_3,
+    output wire PIN_4,
+    output wire PIN_5,
+    output wire PIN_6,
+    output wire PIN_7,
+    output wire PIN_8,
     input wire PIN_9,
 
     inout USBN,
@@ -35,6 +43,6 @@ module top(
         .usb_p(USBP),
         .usb_n(USBN),
         .o_uart_tx(uart_tx),
-        .o_tx_busy(LED_1)
+        .o_debug({PIN_8, PIN_7, PIN_6, PIN_5, PIN_4, PIN_3, PIN_2, PIN_1}),
     );
 endmodule

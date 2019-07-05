@@ -21,7 +21,7 @@ module thedesign(
     inout wire usb_n,
 `endif
     output wire o_uart_tx,
-    output wire o_tx_busy
+    output wire [7:0] o_debug
 );
     wire tx_stb, tx_busy;
     wire [31:0] counter, tx_data;
@@ -58,7 +58,7 @@ module thedesign(
         .i_reset(i_reset),
         .o_busy(tx_busy),
         .o_uart_tx(o_uart_tx),
-        .tx_busy(o_tx_busy),
+        .o_debug(o_debug),
     `ifdef USB_UART
         .i_clk48(i_clk48),
         .usb_n(usb_n),

@@ -253,6 +253,12 @@ module usb_serial_ctrl_ep #(
               rom_length  <= 'h43;
             end
 
+            3 : begin
+              in_ep_stall <= 1;
+              rom_addr <= 'h00;
+              rom_length <= 'h00;
+            end
+
             6 : begin
               // DEVICE_QUALIFIER
               in_ep_stall <= 1;
@@ -260,6 +266,11 @@ module usb_serial_ctrl_ep #(
               rom_length <= 'h00;
             end
 
+            default : begin
+              in_ep_stall <= 1;
+              rom_addr <= 'h00;
+              rom_length <= 'h00;
+            end
           endcase
         end
 

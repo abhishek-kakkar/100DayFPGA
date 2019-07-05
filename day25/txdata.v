@@ -19,7 +19,7 @@ module txdata(
     inout wire usb_n,
 `endif
 
-    output wire tx_busy,
+    output wire [7:0] o_debug,
     output wire o_busy,
     output wire o_uart_tx
 );
@@ -28,6 +28,7 @@ module txdata(
     reg tx_stb;
     reg [7:0] tx_data;
     
+    wire tx_busy;
 
     reg [3:0] state;
     reg [31:0] sreg;
@@ -43,6 +44,10 @@ module txdata(
         .o_busy(tx_busy)
     );
 `else
+    wire u_tx_ready;
+    reg u_tx_stb;
+    reg [7:0] u_tx_data;
+
     usb_uart_i40 txuart_i(
         .clk_48mhz(i_clk48),
         .reset(i_reset),
@@ -62,33 +67,52 @@ module txdata(
 `endif
 
 `ifdef USB_UART
-    wire u_tx_ready;
-    reg d_tb, tx_busy_1, u_tx_stb, d_ts, ts;
-    reg [7:0] u_tx_data;
+    reg d_tb, tx_busy_1, u_tx_stb, d_ts, ts, u_tx_busy;
+    reg [1:0] u_tx_state;
 
     initial begin
         ts = 0; d_ts = 0;
         d_tb = 0; tx_busy_1 = 0;
         u_tx_stb = 0; u_tx_data = 0;
+        u_tx_busy = 0;
+
+        u_tx_state = 0;
     end
 
     always @(posedge i_clk48)
     begin
         {ts, d_ts} = {d_ts, tx_stb};
-        if (ts && u_tx_ready) begin
-            u_tx_data <= tx_data;
-            u_tx_stb <= 1;
-        end else begin
-            u_tx_stb <= 0;
-        end
+        case (u_tx_state)
+            0:  if (ts) begin
+                    u_tx_data <= tx_data;
+                    u_tx_stb <= 1;
+                    u_tx_busy <= 1;
+                    if (u_tx_ready)
+                        u_tx_state <= 1;
+                end else begin
+                    u_tx_stb <= 0;
+                    u_tx_busy <= 0;
+                end
+            1: begin
+                u_tx_stb <= 0;
+                if (!u_tx_ready) begin
+                    u_tx_busy <= 0;
+                    u_tx_state <= 0;
+                end
+               end
+        endcase
     end
 
     always @(posedge i_clk)
-        {tx_busy_1, d_tb} <= {d_tb, !u_tx_ready};
+    begin
+       {tx_busy_1, d_tb} <= {d_tb, u_tx_busy}; 
+    end
 
+    assign o_debug[7] = u_tx_ready;
+    assign o_debug[6] = tx_stb;
+    assign o_debug[5] = tx_busy;
+    assign o_debug[4] = u_tx_state;
     assign tx_busy = tx_busy_1;
-    wire PIN_1;
-    assign PIN_1 = tx_busy;
 `endif
 
     initial state = 0;
