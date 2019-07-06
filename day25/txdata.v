@@ -46,7 +46,7 @@ module txdata(
 `else
     wire u_tx_ready;
     reg u_tx_stb;
-    reg [7:0] u_tx_data;
+    reg [7:0] u_tx_data, u_td, u_tx_data_1;
 
     usb_uart_i40 txuart_i(
         .clk_48mhz(i_clk48),
@@ -67,13 +67,11 @@ module txdata(
 `endif
 
 `ifdef USB_UART
-    reg d_tb, tx_busy_1, u_tx_stb, d_ts, ts, u_tx_busy;
-    reg [1:0] u_tx_state;
+    reg u_tx_stb, u_tx_busy;
+    reg [2:0] u_tx_state;
 
     initial begin
-        ts = 0; d_ts = 0;
-        d_tb = 0; tx_busy_1 = 0;
-        u_tx_stb = 0; u_tx_data = 0;
+        u_tx_stb = 0;
         u_tx_busy = 0;
 
         u_tx_state = 0;
@@ -81,14 +79,15 @@ module txdata(
 
     always @(posedge i_clk48)
     begin
-        {ts, d_ts} = {d_ts, tx_stb};
         case (u_tx_state)
-            0:  if (ts) begin
+            0:  if (tx_stb) begin
                     u_tx_data <= tx_data;
                     u_tx_stb <= 1;
                     u_tx_busy <= 1;
-                    if (u_tx_ready)
+                    if (u_tx_ready) begin
                         u_tx_state <= 1;
+                        u_tx_stb <= 0;
+                    end
                 end else begin
                     u_tx_stb <= 0;
                     u_tx_busy <= 0;
@@ -96,23 +95,35 @@ module txdata(
             1: begin
                 u_tx_stb <= 0;
                 if (!u_tx_ready) begin
-                    u_tx_busy <= 0;
-                    u_tx_state <= 0;
+                    u_tx_state <= 2;
                 end
                end
+            2: begin
+                u_tx_state <= 3;
+            end
+            3: begin
+                u_tx_busy <= 0;
+                u_tx_state <= 4;
+            end
+            4: begin
+                u_tx_state <= 5;
+            end
+            5: begin
+                u_tx_state <= 0;
+            end
         endcase
     end
 
-    always @(posedge i_clk)
-    begin
-       {tx_busy_1, d_tb} <= {d_tb, u_tx_busy}; 
-    end
+    // always @(posedge i_clk)
+    // begin
+    //    {tx_busy_1, d_tb} <= {d_tb, u_tx_busy}; 
+    // end
+    assign tx_busy = u_tx_busy;
 
     assign o_debug[7] = u_tx_ready;
     assign o_debug[6] = tx_stb;
     assign o_debug[5] = tx_busy;
     assign o_debug[4] = u_tx_state;
-    assign tx_busy = tx_busy_1;
 `endif
 
     initial state = 0;
