@@ -111,6 +111,10 @@ module txdata(
             5: begin
                 u_tx_state <= 0;
             end
+            default: begin
+                u_tx_busy <= 0;
+                u_tx_state <= 0;
+            end
         endcase
     end
 
