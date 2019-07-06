@@ -37,6 +37,7 @@ module thedesign(
     counter mycounter(
         .i_clk(i_clk),
         .i_event(i_event),
+        .i_busy(0),
         .i_reset(i_reset),
         .o_counter(counter)
     );
