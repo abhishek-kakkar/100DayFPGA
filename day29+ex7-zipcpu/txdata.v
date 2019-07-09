@@ -43,6 +43,11 @@ module txdata(
         .o_uart_tx(o_uart_tx),
         .o_busy(tx_busy)
     );
+
+/* verilator lint_off UNDRIVEN */
+    wire [7:0] unused;
+    assign o_debug = unused;
+/* verilator lint_on UNDRIVEN */
 `else
     wire u_tx_ready;
     reg u_tx_stb;

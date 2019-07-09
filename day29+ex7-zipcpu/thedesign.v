@@ -9,7 +9,7 @@
 module thedesign(
     input wire i_clk,
     input wire i_reset,
-    input wire i_event,
+    input wire i_btn,
 `ifdef VERILATOR
     output wire [31:0] o_setup,
 `endif
@@ -23,7 +23,8 @@ module thedesign(
     output wire o_uart_tx,
     output wire [7:0] o_debug
 );
-    wire tx_stb, tx_busy;
+    wire tx_stb, tx_busy, debounced;
+    reg btn_event, last_debounced;
     wire [31:0] counter, tx_data;
 
     parameter CLOCK_RATE_HZ = 16_000_000;
@@ -34,9 +35,23 @@ module thedesign(
     assign o_setup = UART_SETUP;
 `endif
 
+    debouncer mydebouncer(
+        .i_clk(i_clk),
+        .i_btn(i_btn),
+        .o_debounced(debounced)
+    );
+
+    initial last_debounced = 0;
+    always @(posedge i_clk)
+        last_debounced <= debounced;
+
+    initial btn_event = 0;
+    always @(posedge i_clk)
+        btn_event <= (debounced && !last_debounced);
+
     counter mycounter(
         .i_clk(i_clk),
-        .i_event(i_event),
+        .i_event(btn_event),
         .i_busy(0),
         .i_reset(i_reset),
         .o_counter(counter)
@@ -57,13 +72,13 @@ module thedesign(
         .i_stb(tx_stb),
         .i_data(tx_data),
         .i_reset(i_reset),
-        .o_busy(tx_busy),
         .o_uart_tx(o_uart_tx),
-        .o_debug(o_debug),
+        .o_busy(tx_busy),
     `ifdef USB_UART
         .i_clk48(i_clk48),
         .usb_n(usb_n),
-        .usb_p(usb_p)
+        .usb_p(usb_p),
     `endif
+        .o_debug(o_debug)
     );
 endmodule

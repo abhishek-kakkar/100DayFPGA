@@ -38,6 +38,7 @@
 #include "Vthedesign.h"
 #include "testb.h"
 #include "uartsim.h"
+#include "buttonsim.h"
 
 #define	KEY_ESCAPE	27
 #define	CTRL(X)		((X)&0x01f)
@@ -55,12 +56,15 @@ int	main(int argc, char **argv) {
 	TESTB<Vthedesign>	*tb
 		= new TESTB<Vthedesign>;
 	UARTSIM		*uart;
+	BUTTONSIM	*btn;
 	unsigned	baudclocks;
 
 
 	uart = new UARTSIM();
 	baudclocks = tb->m_core->o_setup;
 	uart->setup(baudclocks);
+
+	btn = new BUTTONSIM();
 
 	tb->opentrace("thedesign.vcd");
 
@@ -77,21 +81,23 @@ int	main(int argc, char **argv) {
 		int	chv;
 
 		done = false;
-		tb->m_core->i_event = 0;
 
 		chv = getch();
 		if (chv == KEY_ESCAPE)
 			done = true;
 		else if (chv == CTRL('C'))
 			done = true;
-		else if (chv != ERR)
-			tb->m_core->i_event = 1;
+		else if (tolower(chv) == 'r')
+			btn->release();
+		else if ((chv != ERR) && !btn->pressed()) {
+			keypresses++;
+			btn->press();
+		}
 
 		for(int k=0; k<1500; k++) {
 			tb->tick();
 			(*uart)(tb->m_core->o_uart_tx);
-			keypresses += tb->m_core->i_event;
-			tb->m_core->i_event = 0;
+			tb->m_core->i_btn = (*btn)();
 		}
 	} while(!done);
 
