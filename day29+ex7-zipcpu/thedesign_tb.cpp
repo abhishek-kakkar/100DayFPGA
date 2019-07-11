@@ -87,11 +87,16 @@ int	main(int argc, char **argv) {
 			done = true;
 		else if (chv == CTRL('C'))
 			done = true;
-		else if (tolower(chv) == 'r')
-			btn->release();
+		else if (tolower(chv) == 'r'){
+			if (btn->pressed()) {
+				btn->release();
+				addstr("Button released\n");
+			}
+		}
 		else if ((chv != ERR) && !btn->pressed()) {
 			keypresses++;
 			btn->press();
+			addstr("Button pressed\n");
 		}
 
 		for(int k=0; k<1500; k++) {
