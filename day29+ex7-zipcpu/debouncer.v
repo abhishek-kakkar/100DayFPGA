@@ -18,8 +18,10 @@ module debouncer(
     always @(posedge i_clk)
     if (timer != 0)
         timer <= timer - 1;
-    else if (r_btn != o_debounced)
+    else if (r_btn != o_debounced) begin
         timer <= TIME_PERIOD - 1;
+        o_debounced <= r_btn;
+    end
     
     initial o_debounced = 0;
     always @(posedge i_clk)
